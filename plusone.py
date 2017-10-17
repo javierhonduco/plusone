@@ -24,7 +24,7 @@ ONE_CHAR_TOKENS_MAPPING = {
 
 
 class Token:
-    def __init__(self, type, value=''):
+    def __init__(self, type, value):
         self.type = type
         self.value = value
 
@@ -82,19 +82,20 @@ class Lexer:
 
     def next_token(self):
         if self.current_char is None:
-            return Token(TokenType.EOF)
+            return Token(TokenType.EOF, None)
 
         if self.current_char.isspace():
                 self.whitespaces()
 
         if self.current_char is None:
-            return Token(TokenType.EOF)
+            return Token(TokenType.EOF, None)
 
         if self.current_char.isdigit():
             return Token(TokenType.INTEGER, self.digit())
 
         if self.current_char in ONE_CHAR_TOKENS_MAPPING.keys():
-            return Token(self.one_char())
+            current_char = self.current_char
+            return Token(self.one_char(), current_char)
 
         self.error('Unexpected char:{}'.format(self.current_char))
 
@@ -102,7 +103,7 @@ class Lexer:
         tokens = []
         while True:
             token = self.next_token()
-            if token == Token(TokenType.EOF):
+            if token.type == TokenType.EOF:
                 return tokens
             tokens.append(token)
 
@@ -118,7 +119,18 @@ class BinOpNode(AST):
         self.rhs = rhs
 
     def __repr__(self):
-        return 'BinOpNode({}, {}, {})'.format(self.lhs, self.op, self.rhs)
+        return 'BinOpNode({}, {}, {})'.format(
+            self.lhs.__class__,
+            self.op,
+            self.rhs.__class__,
+        )
+
+    def __eq__(self, other):
+        if self.lhs == other.lhs and \
+                self.op == other.op and \
+                self.rhs == other.rhs:
+            return True
+        return False
 
 
 class UnOpNode(AST):
@@ -127,7 +139,13 @@ class UnOpNode(AST):
         self.value = value
 
     def __repr__(self):
-        return 'UnOpNode({}, {})'.format(self.op, self.value)
+        return 'UnOpNode({}, {})'.format(self.op, self.value.__class__)
+
+    def __eq__(self, other):
+        if self.value == other.value and \
+                self.op == other.op:
+            return True
+        return False
 
 
 class ParserError(Exception):
@@ -186,18 +204,19 @@ class Parser:
             self.eat(TokenType.R_PAREN)
             return token
         elif self.current_token.type in (TokenType.ADD, TokenType.MINUS):
+            current_token = self.current_token
             self.eat(self.current_token.type)
-            return UnOpNode(self.current_token, self.expr())
+            return UnOpNode(current_token, self.expr())
 
     def parse(self):
         self.current_token = self.lexer.next_token()
         return self.expr()
-        if self.current_token != Token(TokenType.EOF):
+        if self.current_token != Token(TokenType.EOF, None):
             self.error()
 
+
 if __name__ == '__main__':
-    code = '12*2+4'
+    code = '12+2*4-2000+323-3/24*(-2)'
     tokens = Lexer(code)
-    print(tokens.all_tokens())
     ast = Parser(Lexer(code)).parse()
-    print(ast)
+    print(PrettyPrint(ast).pretty_print())
