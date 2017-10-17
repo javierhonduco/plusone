@@ -65,12 +65,23 @@ class Lexer:
         while self.current_char is not None and self.current_char.isspace():
             self.advance()
 
-    def digit(self):
+    def number(self):
         result = []
         while self.current_char is not None and self.current_char.isdigit():
             result.append(self.current_char)
             self.advance()
-        return int(''.join(result))
+
+        if self.current_char == '.':
+            result.append('.')
+            self.advance()
+        else:
+            return int(''.join(result))
+
+        while self.current_char is not None and self.current_char.isdigit():
+            result.append(self.current_char)
+            self.advance()
+
+        return float(''.join(result))
 
     def one_char(self):
         result = ONE_CHAR_TOKENS_MAPPING[self.current_char]
@@ -91,7 +102,12 @@ class Lexer:
             return Token(TokenType.EOF, None)
 
         if self.current_char.isdigit():
-            return Token(TokenType.INTEGER, self.digit())
+            number = self.number()
+            if type(number) is float:
+                token_type = TokenType.FLOAT
+            else:
+                token_type = TokenType.INTEGER
+            return Token(token_type, number)
 
         if self.current_char in ONE_CHAR_TOKENS_MAPPING.keys():
             current_char = self.current_char

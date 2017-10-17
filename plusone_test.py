@@ -39,6 +39,16 @@ class PlusOneLexerTest(unittest.TestCase):
         tokens = Lexer(code).all_tokens()
         self.assertEqual(tokens, expected_tokens)
 
+    def test_basic_lexer_floats(self):
+        expected_tokens = [
+            Token(TokenType.INTEGER, 42),
+            Token(TokenType.ADD, '+'),
+            Token(TokenType.FLOAT, 3.14),
+        ]
+        code = '42+3.14'
+        tokens = Lexer(code).all_tokens()
+        self.assertEqual(tokens, expected_tokens)
+
     def test_empty_code(self):
         code = ''
         with self.assertRaises(EmptyInputException):
