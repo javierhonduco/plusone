@@ -91,7 +91,7 @@ class PlusOneParserTest(unittest.TestCase):
                 Token(TokenType.MINUS, '-'),
                 UnOpNode(
                     Token(TokenType.MINUS, '-'),
-                    Token(TokenType.INTEGER, 1)
+                    Token(TokenType.INTEGER, 1),
                 ),
             ),
         )
