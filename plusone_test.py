@@ -6,6 +6,7 @@ from plusone import (
     Lexer,
     LexerError,
     Parser,
+    Sexp,
     Token,
     TokenType,
     UnOpNode,
@@ -150,6 +151,29 @@ class PlusOneParserTest(unittest.TestCase):
             ),
         )
 
+
+class PlusOneSexpTest(unittest.TestCase):
+    def test_sexp_basic(self):
+        code = '1+2'
+        lexer = Lexer(code)
+        parser = Parser(lexer)
+        ast = parser.parse()
+        sexp = Sexp(ast).to_sexp()
+        self.assertEqual(
+            sexp,
+            ['+', 1, 2]
+        )
+
+    def test_sexp_more_featured(self):
+        code = '1+2/(-42)*3'
+        lexer = Lexer(code)
+        parser = Parser(lexer)
+        ast = parser.parse()
+        sexp = Sexp(ast).to_sexp()
+        self.assertEqual(
+            sexp,
+            ['+', 1, ['*', ['/', 2, ['-', 42]], 3]]
+        )
 
 if __name__ == '__main__':
     unittest.main()

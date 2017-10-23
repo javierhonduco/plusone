@@ -231,8 +231,36 @@ class Parser:
             self.error()
 
 
+class Sexp:
+    def __init__(self, ast):
+        self.ast = ast
+
+    def to_sexp(self):
+        return self.to_sexp_helper(self.ast)
+
+    def to_sexp_helper(self, node):
+        if isinstance(node, BinOpNode):
+            return [
+                node.op.value,
+                self.to_sexp_helper(node.lhs),
+                self.to_sexp_helper(node.rhs),
+            ]
+        elif isinstance(node, UnOpNode):
+            return [
+                node.op.value,
+                self.to_sexp_helper(node.value),
+            ]
+        elif isinstance(node, Token):
+            return node.value
+        else:
+            raise Error('Node could not be recognised')
+
+
 if __name__ == '__main__':
+    import pprint
+
     code = '12+2*4-2000+323-3/24*(-2)'
     tokens = Lexer(code)
     ast = Parser(Lexer(code)).parse()
-    print(PrettyPrint(ast).pretty_print())
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(Sexp(ast).to_sexp())
