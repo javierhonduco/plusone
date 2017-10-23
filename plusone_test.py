@@ -1,8 +1,11 @@
 import unittest
+from math import isclose
+
 
 from plusone import (
     BinOpNode,
     EmptyInputException,
+    Interpreter,
     Lexer,
     LexerError,
     Parser,
@@ -174,6 +177,17 @@ class PlusOneSexpTest(unittest.TestCase):
             sexp,
             ['+', 1, ['*', ['/', 2, ['-', 42]], 3]]
         )
+
+
+class PlusOneInterpreterTest(unittest.TestCase):
+    def test_interpreter_basic(self):
+        code = '1+2/(-42)*3'
+        lexer = Lexer(code)
+        parser = Parser(lexer)
+        ast = parser.parse()
+        result = Interpreter(ast).interpret()
+        self.assertTrue(isclose(result, 0.8571428571))
+
 
 if __name__ == '__main__':
     unittest.main()

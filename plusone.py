@@ -256,6 +256,47 @@ class Sexp:
             raise Error('Node could not be recognised')
 
 
+class Visitor:
+    def visit(self, node):
+        klass_name = type(node).__name__
+        visitor = getattr(self, 'visit_{}'.format(klass_name))
+        return visitor(node)
+
+
+class Interpreter(Visitor):
+    def __init__(self, ast):
+        self.ast = ast
+
+    def interpret(self):
+        return self.visit(self.ast)
+
+    def visit_BinOpNode(self, node):
+        left = self.visit(node.lhs)
+        right = self.visit(node.rhs)
+        op = node.op
+
+        if op.type == TokenType.ADD:
+            return left + right
+        elif op.type == TokenType.MINUS:
+            return left - right
+        elif op.type == TokenType.MULT:
+            return left * right
+        elif op.type == TokenType.DIV:
+            return left / right
+
+    def visit_UnOpNode(self, node):
+        value = self.visit(node.value)
+        op = node.op
+
+        if op.type == TokenType.ADD:
+            return value
+        elif op.type == TokenType.MINUS:
+            return -value
+
+    def visit_Token(self, node):
+        return node.value
+
+
 if __name__ == '__main__':
     import pprint
 
@@ -264,3 +305,4 @@ if __name__ == '__main__':
     ast = Parser(Lexer(code)).parse()
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(Sexp(ast).to_sexp())
+    print(Interpreter(ast).interpret())
