@@ -297,12 +297,60 @@ class Interpreter(Visitor):
         return node.value
 
 
-if __name__ == '__main__':
-    import pprint
+class VM(Visitor):
+    def __init__(self, ast):
+        self.ast = ast
+        self.stack = []
+        self.operator_stack = []
+        self.operands_stack = []
 
-    code = '12+2*4-2000+323-3/24*(-2)'
-    tokens = Lexer(code)
-    ast = Parser(Lexer(code)).parse()
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(Sexp(ast).to_sexp())
-    print(Interpreter(ast).interpret())
+    def run(self):
+        self.do_visit()
+        return self.do_interpret()
+
+    def do_visit(self):
+        self.visit(self.ast)
+
+    def do_interpret(self):
+        for element in self.stack:
+            if isinstance(element, Token):
+                self.operator_stack.append(element)
+            else:
+                self.operands_stack.append(element)
+
+        while len(self.operator_stack) > 0:
+            op = self.operator_stack.pop(0)
+            left = self.operands_stack.pop(0)
+            right = self.operands_stack.pop(0)
+
+            if op.type == TokenType.ADD:
+                result = left + right
+            elif op.type == TokenType.MINUS:
+                result = left - right
+            elif op.type == TokenType.MULT:
+                result = left * right
+            elif op.type == TokenType.DIV:
+                result = left / right
+
+            self.operands_stack.insert(0, result)
+
+        return self.operands_stack.pop()
+
+    def visit_BinOpNode(self, node):
+        left = self.visit(node.lhs)
+        right = self.visit(node.rhs)
+        self.stack.extend(filter(None, [left, right]))
+
+        self.stack.append(node.op)
+
+    def visit_UnOpNode(self, node):
+        value = self.visit(node.value)
+        op = node.op
+
+        if op.type == TokenType.MINUS:
+            value = -value
+
+        self.stack.append(value)
+
+    def visit_Token(self, node):
+        return node.value

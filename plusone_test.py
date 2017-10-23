@@ -13,6 +13,7 @@ from plusone import (
     Token,
     TokenType,
     UnOpNode,
+    VM,
 )
 
 
@@ -188,6 +189,18 @@ class PlusOneInterpreterTest(unittest.TestCase):
         result = Interpreter(ast).interpret()
         self.assertTrue(isclose(result, 0.8571428571))
 
+
+class PlusOneVMTest(unittest.TestCase):
+    def test_vm_basic(self):
+        code = '1+2/(-42)*3'
+        lexer = Lexer(code)
+        parser = Parser(lexer)
+        ast = parser.parse()
+        vm = VM(ast)
+        result = vm.run()
+        self.assertEqual(vm.operator_stack, [])
+        self.assertEqual(vm.operands_stack, [])
+        self.assertTrue(result, 16)
 
 if __name__ == '__main__':
     unittest.main()
