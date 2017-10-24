@@ -2,17 +2,29 @@ import unittest
 from math import isclose
 
 
-from plusone import (
-    BinOpNode,
-    EmptyInputException,
-    Interpreter,
+from lexer import (
     Lexer,
     LexerError,
-    Parser,
-    Sexp,
+    EmptyInputException,
+)
+
+from tokens import (
     Token,
     TokenType,
+)
+
+from ast import (
+    BinOpNode,
     UnOpNode,
+)
+
+from parser import (
+    Parser,
+)
+
+from evaluators import (
+    Interpreter,
+    Sexp,
     VM,
 )
 
