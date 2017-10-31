@@ -114,7 +114,7 @@ class VM(Visitor):
     def interpret_unop(self, op):
         expr = self.operands_stack.pop(0)
         if op.type == TokenType.ADD:
-            result = +expr  # innecessary, but well...
+            result = +expr  # unnecessary, but well...
         elif op.type == TokenType.MINUS:
             result = -expr
         return result
