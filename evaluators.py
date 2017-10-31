@@ -117,9 +117,8 @@ class VM(Visitor):
     def visit_BinOpNode(self, node):
         left = self.visit(node.lhs)
         right = self.visit(node.rhs)
-        self.stack.extend(filter(None, [left, right]))
 
-        self.stack.append(node.op)
+        self.stack.extend(filter(None, [left, right, node.op]))
 
     def visit_UnOpNode(self, node):
         value = self.visit(node.value)
