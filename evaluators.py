@@ -89,38 +89,49 @@ class VM(Visitor):
     def do_visit(self):
         self.visit(self.ast)
 
-    def do_interpret(self):
+    def create_stacks(self):
         for element in self.stack:
             if isinstance(element, UnOpNode) or isinstance(element, BinOpNode):
                 self.operator_stack.append(element)
             else:
                 self.operands_stack.append(element)
 
-        while len(self.operator_stack) > 0:
+    def interpret_binop(self, op):
+        left = self.operands_stack.pop(0)
+        right = self.operands_stack.pop(0)
+
+        if op.type == TokenType.ADD:
+            result = left + right
+        elif op.type == TokenType.MINUS:
+            result = left - right
+        elif op.type == TokenType.MULT:
+            result = left * right
+        elif op.type == TokenType.DIV:
+            result = left / right
+
+        return result
+
+    def interpret_unop(self, op):
+        expr = self.operands_stack.pop(0)
+        if op.type == TokenType.ADD:
+            result = +expr  # innecessary, but well...
+        elif op.type == TokenType.MINUS:
+            result = -expr
+        return result
+
+    def interpret_node(self, node):
+        if isinstance(node, BinOpNode):
+            return self.interpret_binop(node.op)
+        elif isinstance(node, UnOpNode):
+            return self.interpret_unop(node.op)
+
+    def do_interpret(self):
+        self.create_stacks()
+
+        while self.operator_stack:
             node = self.operator_stack.pop(0)
-            op = node.op
-
-            if isinstance(node, BinOpNode):
-                left = self.operands_stack.pop(0)
-                right = self.operands_stack.pop(0)
-
-                if op.type == TokenType.ADD:
-                    result = left + right
-                elif op.type == TokenType.MINUS:
-                    result = left - right
-                elif op.type == TokenType.MULT:
-                    result = left * right
-                elif op.type == TokenType.DIV:
-                    result = left / right
-                self.operands_stack.insert(0, result)
-
-            elif isinstance(node, UnOpNode):
-                expr = self.operands_stack.pop(0)
-                if op.type == TokenType.ADD:
-                    result = +expr  # innecessary, but well...
-                elif op.type == TokenType.MINUS:
-                    result = -expr
-                self.operands_stack.insert(0, result)
+            result = self.interpret_node(node)
+            self.operands_stack.insert(0, result)
 
         return self.operands_stack.pop()
 
