@@ -91,26 +91,36 @@ class VM(Visitor):
 
     def do_interpret(self):
         for element in self.stack:
-            if isinstance(element, Token):
+            if isinstance(element, UnOpNode) or isinstance(element, BinOpNode):
                 self.operator_stack.append(element)
             else:
                 self.operands_stack.append(element)
 
         while len(self.operator_stack) > 0:
-            op = self.operator_stack.pop(0)
-            left = self.operands_stack.pop(0)
-            right = self.operands_stack.pop(0)
+            node = self.operator_stack.pop(0)
+            op = node.op
 
-            if op.type == TokenType.ADD:
-                result = left + right
-            elif op.type == TokenType.MINUS:
-                result = left - right
-            elif op.type == TokenType.MULT:
-                result = left * right
-            elif op.type == TokenType.DIV:
-                result = left / right
+            if isinstance(node, BinOpNode):
+                left = self.operands_stack.pop(0)
+                right = self.operands_stack.pop(0)
 
-            self.operands_stack.insert(0, result)
+                if op.type == TokenType.ADD:
+                    result = left + right
+                elif op.type == TokenType.MINUS:
+                    result = left - right
+                elif op.type == TokenType.MULT:
+                    result = left * right
+                elif op.type == TokenType.DIV:
+                    result = left / right
+                self.operands_stack.insert(0, result)
+
+            elif isinstance(node, UnOpNode):
+                expr = self.operands_stack.pop(0)
+                if op.type == TokenType.ADD:
+                    result = +expr  # innecessary, but well...
+                elif op.type == TokenType.MINUS:
+                    result = -expr
+                self.operands_stack.insert(0, result)
 
         return self.operands_stack.pop()
 
@@ -118,16 +128,12 @@ class VM(Visitor):
         left = self.visit(node.lhs)
         right = self.visit(node.rhs)
 
-        self.stack.extend(filter(None, [left, right, node.op]))
+        self.stack.extend(filter(None, [left, right, node]))
 
     def visit_UnOpNode(self, node):
         value = self.visit(node.value)
-        op = node.op
 
-        if op.type == TokenType.MINUS:
-            value = -value
-
-        self.stack.append(value)
+        self.stack.extend([value, node])
 
     def visit_Token(self, node):
         return node.value
